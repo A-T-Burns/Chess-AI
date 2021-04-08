@@ -1,6 +1,7 @@
 const canvas = document.querySelector("canvas")
 const context = canvas.getContext("2d")
 let playerColor = "white"
+let AIColor = "black"
 const chessColumn  = ["a", "b", "c", "d", "e", "f", "g", "h"]
 const chessRow = [1, 2, 3, 4, 5, 6, 7, 8]
 window.addEventListener('resize', resizeCanvas, false);
@@ -91,6 +92,7 @@ var blackSquareGrey = '#696969'
 
 if (Math.random() > .5 && false) {
   playerColor = "black"
+  AIColor = "white"
   AIMove()
 }
 console.log("You are" , playerColor)
@@ -158,6 +160,7 @@ function evaluateBoard(state) {
       }
     }
   }
+  console.log(whiteScore, blackScore)
   if (playerColor == "black") {
     return whiteScore - blackScore
   } else {
@@ -167,30 +170,31 @@ function evaluateBoard(state) {
 
 function calculateBestMove() {
   let state = game.board()
-  let highScore = 0
+  console.log(state)
+  let highScore = -Infinity
   let bestMove = ""
   let oldPos;
   for (let x = 0; x < state.length; x++) {
     for (let y = 0; y < state[x].length; y++) {
       let piece = state[x][y]
-      if (piece && playerColor[0] == piece.color) {
-        let availableMoves = game.moves({square: xytoChess(x, y)})
+      if (piece && AIColor[0] == piece.color) {
+        let availableMoves = game.moves({square: xytoChess(x, y), verbose: true})
         for (let i = 0; i < availableMoves.length; i++) {
           state[x][y] = null
-          let [newX, newY] = chesstoXY(availableMoves[i])
+          let [newX, newY] = chesstoXY(availableMoves[i].to)
           state[newX, newY] = piece
           let score = evaluateBoard(state)
-          console.log(score)
+          console.log("score", score, "availablemoves", availableMoves.length)
           if (score > highScore) {
             oldPos = xytoChess(x, y);
             highScore = score
-            bestMove = availableMoves[i]
+            bestMove = availableMoves[i].san
           }
         }
       }
     }
   }
-  console.log(oldPos, bestMove)
+  console.log(bestMove)
   //return game.move({from: oldPos ,to: bestMove})
   return game.move(bestMove)
 }
