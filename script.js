@@ -1,12 +1,10 @@
 const canvas = document.querySelector("canvas")
 const context = canvas.getContext("2d")
-const playerColor = "white"
-if (Math.random() > .5) {
-  playerColor = "black"
-}
+let playerColor = "white"
+const chessColumn  = ["a", "b", "c", "d", "e", "f", "g", "h"]
+const chessRow = [1, 2, 3, 4, 5, 6, 7, 8]
 window.addEventListener('resize', resizeCanvas, false);
 document.querySelector(".start").addEventListener("click", () => {
-  console.log("works")
   document.getElementById("intro").className = "hidden"
   document.getElementById("myBoard").classList.remove("hidden")
 })
@@ -91,6 +89,12 @@ var game = new Chess()
 var whiteSquareGrey = '#a9a9a9'
 var blackSquareGrey = '#696969'
 
+if (Math.random() > .5 && false) {
+  playerColor = "black"
+  AIMove()
+}
+console.log("You are" , playerColor)
+
 function removeGreySquares () {
   $('#myBoard .square-55d63').css('background', '')
 }
@@ -133,9 +137,10 @@ function onDrop (source, target) {
 }
 
 function AIMove() {
+  console.log("AIMove")
   // Analyze board state
   let state = game.board()
-  console.log(state)
+  console.log(calculateBestMove())
   // Calculate best move
   // use .in_check() to see if king is in danger
   // Move to that position
@@ -160,10 +165,11 @@ function evaluateBoard(state) {
   }
 }
 
-function testMoves() {
+function calculateBestMove() {
   let state = game.board()
   let highScore = 0
   let bestMove = ""
+  let oldPos;
   for (let x = 0; x < state.length; x++) {
     for (let y = 0; y < state[x].length; y++) {
       let piece = state[x][y]
@@ -174,7 +180,9 @@ function testMoves() {
           let [newX, newY] = chesstoXY(availableMoves[i])
           state[newX, newY] = piece
           let score = evaluateBoard(state)
+          console.log(score)
           if (score > highScore) {
+            oldPos = xytoChess(x, y);
             highScore = score
             bestMove = availableMoves[i]
           }
@@ -182,9 +190,10 @@ function testMoves() {
       }
     }
   }
+  console.log(oldPos, bestMove)
+  //return game.move({from: oldPos ,to: bestMove})
+  return game.move(bestMove)
 }
-const chessColumn  = ["a", "b", "c", "d", "e", "f", "g", "h"]
-const chessRow = [1, 2, 3, 4, 5, 6, 7, 8]
 function xytoChess(x, y) {
   return `${chessColumn[x]}${chessRow[y]}`
 }
@@ -205,12 +214,14 @@ function evaluatePiece(piece){
     case "r":
       return 5
     case "b":
-    case "n":
+    case "N":
       return 3
     case "p":
       return 1
     case "k":
       return 999
+    default:
+      return 0
   }
 }
 
