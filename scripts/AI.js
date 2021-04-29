@@ -2,7 +2,7 @@ function AIMove() {
     console.log("AIMove")
     // Analyze board state
     let state = game.board()
-    calculateBestMove()
+    calculateBestMove(3)
   //   console.log(calculateBestMove())
     // Calculate best move
     // use .in_check() to see if king is in danger
@@ -29,7 +29,11 @@ function AIMove() {
     }
   }
   
-  function calculateBestMove() {
+  // evaluates the board to find the best move
+  function calculateBestMove(depth) {
+    // if(depth > 0) {
+    //   calculateBestMove(depth--)
+    // }
     let state = game.board()
     console.log('board state before moving',state)
     let highScore = -Infinity
@@ -39,27 +43,29 @@ function AIMove() {
     for (let y = 0; y < state.length; y++) {
         for (let x = 0; x < state.length; x++) {
             let piece = state[y][x]
+            state[y][x] = null
             //console.log('potential piece', piece, xytoChess(x, y));
             if (piece && AIColor[0] == piece.color) {
               console.log('piece avaliable to move on',xytoChess(x, y));
               let availableMoves = game.moves({square: xytoChess(x, y), verbose: true})
               totalMoves += availableMoves.length
               for (let i = 0; i < availableMoves.length; i++) {
-                  state[x][y] = null
                   let [newX, newY] = chesstoXY(availableMoves[i].to)
-                  state[newX, newY] = piece
+                  state[newY][newX] = piece
                   let score = evaluateBoard(state)
                   if (score > highScore) {
                       oldPos = xytoChess(x, y);
                       highScore = score
                       bestMove = availableMoves[i].san
                   }
+                  state[newY][newX] = null
               }
+              state[y][x] = piece
           console.log(piece, "score", highScore, "availablemoves", availableMoves.length)
         }
       }
     }
-    console.log('best move is ',bestMove, 'out of ', totalMoves)
+    console.log('best move is ',bestMove, 'out of ', totalMoves, evaluateBoard(state))
     //return game.move({from: oldPos ,to: bestMove})
     return game.move(bestMove)
   }
