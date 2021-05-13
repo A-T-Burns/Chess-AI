@@ -151,6 +151,7 @@ var Chess = function(fen) {
   }
 
   var board = new Array(128)
+  window.board = board
   var kings = { w: EMPTY, b: EMPTY }
   var turn = WHITE
   var castling = { w: 0, b: 0 }
@@ -531,7 +532,8 @@ var Chess = function(fen) {
     }
 
     var moves = []
-    var us = turn
+    var us = options?.turn || turn
+    var state = options?.state || board
     var them = swap_color(us)
     var second_rank = { b: RANK_7, w: RANK_2 }
 
@@ -563,7 +565,7 @@ var Chess = function(fen) {
         continue
       }
 
-      var piece = board[i]
+      var piece = state[i]
       if (piece == null || piece.color !== us) {
         continue
       }
@@ -571,13 +573,13 @@ var Chess = function(fen) {
       if (piece.type === PAWN) {
         /* single square, non-capturing */
         var square = i + PAWN_OFFSETS[us][0]
-        if (board[square] == null) {
-          add_move(board, moves, i, square, BITS.NORMAL)
+        if (state[square] == null) {
+          add_move(state, moves, i, square, BITS.NORMAL)
 
           /* double square */
           var square = i + PAWN_OFFSETS[us][1]
-          if (second_rank[us] === rank(i) && board[square] == null) {
-            add_move(board, moves, i, square, BITS.BIG_PAWN)
+          if (second_rank[us] === rank(i) && state[square] == null) {
+            add_move(state, moves, i, square, BITS.BIG_PAWN)
           }
         }
 
@@ -586,10 +588,10 @@ var Chess = function(fen) {
           var square = i + PAWN_OFFSETS[us][j]
           if (square & 0x88) continue
 
-          if (board[square] != null && board[square].color === them) {
-            add_move(board, moves, i, square, BITS.CAPTURE)
+          if (state[square] != null && state[square].color === them) {
+            add_move(state, moves, i, square, BITS.CAPTURE)
           } else if (square === ep_square) {
-            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
+            add_move(state, moves, i, ep_square, BITS.EP_CAPTURE)
           }
         }
       } else {
@@ -601,11 +603,11 @@ var Chess = function(fen) {
             square += offset
             if (square & 0x88) break
 
-            if (board[square] == null) {
-              add_move(board, moves, i, square, BITS.NORMAL)
+            if (state[square] == null) {
+              add_move(state, moves, i, square, BITS.NORMAL)
             } else {
-              if (board[square].color === us) break
-              add_move(board, moves, i, square, BITS.CAPTURE)
+              if (state[square].color === us) break
+              add_move(state, moves, i, square, BITS.CAPTURE)
               break
             }
 
@@ -626,13 +628,13 @@ var Chess = function(fen) {
         var castling_to = castling_from + 2
 
         if (
-          board[castling_from + 1] == null &&
-          board[castling_to] == null &&
+          state[castling_from + 1] == null &&
+          state[castling_to] == null &&
           !attacked(them, kings[us]) &&
           !attacked(them, castling_from + 1) &&
           !attacked(them, castling_to)
         ) {
-          add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
+          add_move(state, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
         }
       }
 
@@ -642,14 +644,14 @@ var Chess = function(fen) {
         var castling_to = castling_from - 2
 
         if (
-          board[castling_from - 1] == null &&
-          board[castling_from - 2] == null &&
-          board[castling_from - 3] == null &&
+          state[castling_from - 1] == null &&
+          state[castling_from - 2] == null &&
+          state[castling_from - 3] == null &&
           !attacked(them, kings[us]) &&
           !attacked(them, castling_from - 1) &&
           !attacked(them, castling_to)
         ) {
-          add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
+          add_move(state, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
         }
       }
     }
