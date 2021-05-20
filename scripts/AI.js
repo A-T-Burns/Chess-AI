@@ -3,12 +3,22 @@ function AIMove() {
   console.log("AIMove")
   // Analyze board state
   let state = game.board()
-  //calculateBestMove(state, 3)
-  //   console.log(calculateBestMove())
+  calculateBestMove(state, 3)
+  console.log(calculateBestMove())
   // Calculate best move
   // use .in_check() to see if king is in danger
   // Move to that position
   // set turn back to player
+}
+function flattenBoard(state) {
+  const flat = new Array(128)
+  for (let x = 0; x < state.length; x++) {
+    for (let y = 0; y < state[0].length; y++) {
+      flat[y + x*16] = state[x][y]
+    }
+    
+  }
+  return flat
 }
 
 function evaluateBoard(state, AITurn) {
@@ -59,18 +69,20 @@ function boardNode(state, depth, score, firstMove, AITurn = true) {
 function calculateBestMove() {
   let queue = [boardNode(game.board(), 0, evaluateBoard(game.board()))]
   let bestNode = null
+  console.log(flattenBoard(game.board()))
 
-  while (queue.length) {
+  let count = 0
+  while (queue.length && ++count < 100) {
     let { state, depth, firstMove, AITurn} = queue.shift()
     //  get all the available moves for the current player and add them to queue
     for (let y = 0; y < state.length; y++) {
       for (let x = 0; x < state.length; x++) {
         let piece = state[y][x]
-        state[y][x] = null
         //console.log('potential piece', piece, xytoChess(x, y));
         if (piece && ((AIColor[0] == piece.color && AITurn) || (playerColor[0] == piece.color && !AITurn))) {
           console.log('piece avaliable to move on', xytoChess(x, y), "depth" , depth);
-          let availableMoves = game.moves({ square: xytoChess(x, y), verbose: true, turn: AITurn ? AIColor[0] : playerColor[0], state })
+          let availableMoves = game.moves({ square: xytoChess(x, y), verbose: true, turn: AITurn ? AIColor[0] : playerColor[0], state: flattenBoard(state) })
+          state[y][x] = null
           for (let i = 0; i < availableMoves.length; i++) {
             let [newX, newY] = chesstoXY(availableMoves[i].to)
             state[newY][newX] = piece

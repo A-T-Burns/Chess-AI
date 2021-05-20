@@ -534,6 +534,10 @@ var Chess = function(fen) {
     var moves = []
     var us = options?.turn || turn
     var state = options?.state || board
+    if (options?.state) {
+      console.log(board, state)
+    }
+    //console.log(JSON.stringify(board), "comparison",  JSON.stringify(flattenBoard(game.board())))
     var them = swap_color(us)
     var second_rank = { b: RANK_7, w: RANK_2 }
 
@@ -630,9 +634,9 @@ var Chess = function(fen) {
         if (
           state[castling_from + 1] == null &&
           state[castling_to] == null &&
-          !attacked(them, kings[us]) &&
-          !attacked(them, castling_from + 1) &&
-          !attacked(them, castling_to)
+          !attacked(them, kings[us], state) &&
+          !attacked(them, castling_from + 1, state) &&
+          !attacked(them, castling_to, state)
         ) {
           add_move(state, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
         }
@@ -732,7 +736,7 @@ var Chess = function(fen) {
     return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
   }
 
-  function attacked(color, square) {
+  function attacked(color, square, state = board) {
     for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
       /* did we run off the end of the board */
       if (i & 0x88) {
@@ -741,9 +745,9 @@ var Chess = function(fen) {
       }
 
       /* if empty square or wrong color */
-      if (board[i] == null || board[i].color !== color) continue
+      if (state[i] == null || state[i].color !== color) continue
 
-      var piece = board[i]
+      var piece = state[i]
       var difference = i - square
       var index = difference + 119
 
